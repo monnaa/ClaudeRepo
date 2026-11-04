@@ -1,0 +1,35 @@
+1
+00:00:00,300 --> 00:00:03,800
+Fais-moi un truc sur le marketing.
+
+2
+00:00:04,200 --> 00:00:06,900
+Une réponse générique. Évidemment.
+
+3
+00:00:07,200 --> 00:00:09,900
+Je reste calme.
+
+4
+00:00:10,000 --> 00:00:12,000
+Je retape. En plus fort.
+
+5
+00:00:12,200 --> 00:00:14,000
+Toujours aussi générique.
+
+6
+00:00:14,200 --> 00:00:17,900
+Cette IA est nulle !
+
+7
+00:00:18,200 --> 00:00:20,900
+Dernier essai.
+
+8
+00:00:25,200 --> 00:00:28,000
+L'IA ne lit pas dans ta tête.
+
+9
+00:00:28,000 --> 00:00:30,000
+Va apprendre à prompter.
