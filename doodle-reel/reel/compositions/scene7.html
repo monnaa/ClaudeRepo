@@ -1,0 +1,68 @@
+<template>
+  <style>
+    #root { position: absolute; inset: 0; background: #f6efe3; overflow: hidden; }
+    #s7-root .shadow { position: absolute; left: 190px; top: 1615px; width: 700px; height: 60px; }
+    #s7-root .pose { position: absolute; left: 128px; top: 545px; width: 825px; height: 1100px; }
+    #s7-root .rig { position: absolute; inset: 0; transform-origin: 50% 100%; }
+    #s7-root .rig img { width: 100%; height: 100%; display: block; }
+    #s7-root .rig img.stuck { height: auto; }
+    #s7-root .mark, #s7-root .stuck { position: absolute; }
+    #s7-root svg { width: 100%; height: 100%; overflow: visible; }
+  </style>
+  <div id="root" data-composition-id="s7" data-width="1080" data-height="1920">
+    <div id="s7-root">
+      <svg class="shadow" viewBox="0 0 700 60"><g id="s7-shadow" class="boil"></g></svg>
+      <div id="s7-pose" class="pose clip" data-start="0" data-duration="4" data-track-index="1">
+        <div id="s7-rig" class="rig">
+          <img src="assets/bank/P07_postit.png" alt="" />
+          <!-- post-its caught in her hair (positions relative to the pose box) -->
+          <img id="s7-stuck1" class="stuck" src="assets/bank/A08_postit_02.png" alt="" style="left: 350px; top: -14px; width: 84px" />
+          <img id="s7-stuck2" class="stuck" src="assets/bank/A10_postit_04.png" alt="" style="left: 468px; top: 40px; width: 66px" />
+        </div>
+      </div>
+      <div id="s7-marks" class="clip" data-start="0" data-duration="4" data-track-index="2">
+        <svg class="mark" style="left: 650px; top: 600px; width: 46px; height: 69px" viewBox="0 0 60 90"><g id="s7-sweat" class="boil"></g></svg>
+        <svg class="mark" style="left: 40px; top: 245px; width: 460px; height: 360px" viewBox="0 0 460 360"><g id="s7-thought" class="boil"></g></svg>
+      </div>
+    </div>
+  </div>
+  <script>
+    (function () {
+      const R = window.Rig;
+      const C = R.CUES;
+      const T0 = 21;
+      const tl = gsap.timeline({ paused: true });
+      R.mark(document.getElementById("s7-shadow"), "shadow", 17);
+      R.mark(document.getElementById("s7-sweat"), "sweat", 71);
+      R.mark(document.getElementById("s7-thought"), "thought", 72);
+      gsap.set(["#s7-sweat", "#s7-thought", "#s7-stuck1", "#s7-stuck2"], { opacity: 0 });
+      gsap.set("#s7-stuck1", { rotation: -14 });
+      gsap.set("#s7-stuck2", { rotation: 18 });
+
+      const POP = +(C.POP - T0).toFixed(2); // 1.0
+      // silence: she freezes ("ah..."), a sweat drop; post-its land in her hair in one beat;
+      // an empty thought bubble; she slowly tilts her head.
+      R.popIn(tl, "#s7-sweat", 0.3, 1.2);
+      tl.set("#s7-sweat", { y: 10 }, 1.6);
+      tl.set("#s7-sweat", { y: 20 }, 2.6);
+      R.popIn(tl, "#s7-stuck1", POP, 1.35);
+      R.popIn(tl, "#s7-stuck2", POP, 1.35);
+      gsap.set("#s7-thought", { scaleX: -1, transformOrigin: "50% 50%" }); // tail points to her head
+      tl.set("#s7-thought", { opacity: 1, scaleX: -0.55, scaleY: 0.55, transformOrigin: "50% 50%" }, 2.0);
+      tl.set("#s7-thought", { scaleX: -1.08, scaleY: 1.08 }, 2.1);
+      tl.set("#s7-thought", { scaleX: -1, scaleY: 1 }, 2.2);
+
+      R.steps(tl, "#s7-rig", 0, 4, (t, r) => {
+        const j = t < POP ? { x: 0, y: 0, rotation: 0 } : R.jitter(1.2, 0.15)(t, r); // frozen, then alive
+        const k = Math.round((t - POP) * 10);
+        if (k === 0) { j.scaleY = 0.95; j.scaleX = 1.03; }
+        if (k === 1) { j.scaleY = 1.03; j.scaleX = 0.98; }
+        if (t >= 2.2) j.rotation += -Math.min(3.5, Math.floor((t - 2.2) / 0.3) * 0.7); // slow, stepped tilt
+        return j;
+      }, 701);
+
+      R.boilLines(tl, "#s7-root .boil", 0, 4, 7);
+      window.__timelines["s7"] = tl;
+    })();
+  </script>
+</template>

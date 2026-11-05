@@ -1,0 +1,62 @@
+<template>
+  <style>
+    #root { position: absolute; inset: 0; background: #f6efe3; overflow: hidden; }
+    #s8-root .pose { position: absolute; left: -35px; top: 400px; width: 1150px; height: 1533px; }
+    #s8-root .rig { position: absolute; inset: 0; transform-origin: 50% 100%; }
+    #s8-root .rig img { width: 100%; height: 100%; display: block; }
+    #s8-root .rig img.stuck { height: auto; }
+    #s8-root .stuck { position: absolute; }
+    #s8-root .panel { position: absolute; left: 130px; top: 30px; width: 820px; height: 290px; }
+    #s8-root svg { width: 100%; height: 100%; overflow: visible; }
+  </style>
+  <div id="root" data-composition-id="s8" data-width="1080" data-height="1920">
+    <div id="s8-root">
+      <!-- close-up, the punchline: she faces us, deadpan; the post-it slides over one eye -->
+      <div id="s8-pose" class="pose clip" data-start="0" data-duration="5" data-track-index="1" data-layout-allow-overflow>
+        <div id="s8-rig" class="rig">
+          <img src="assets/bank/P03_idee.png" alt="" />
+          <img id="s8-stuck" class="stuck" src="assets/bank/A08_postit_02.png" alt="" style="left: 455px; top: -10px; width: 150px" />
+        </div>
+      </div>
+      <div id="s8-panel" class="panel clip" data-start="0" data-duration="5" data-track-index="2">
+        <svg id="s8-panel-svg" viewBox="0 0 820 290"></svg>
+      </div>
+    </div>
+  </div>
+  <script>
+    (function () {
+      const R = window.Rig;
+      const C = R.CUES;
+      const T0 = 25;
+      const tl = gsap.timeline({ paused: true });
+      R.buildPanel(document.getElementById("s8-panel-svg"), "s8p", 8, 8);
+      // only the calm, empty input bar with a blinking cursor
+      gsap.set(["#s8p-frame", "#s8p-user", "#s8p-bot"], { opacity: 0 });
+      for (let i = 0; i < 8; i++) gsap.set("#s8p-d" + i, { opacity: 0 });
+      gsap.set("#s8p-cursor", { x: 62, opacity: 1 });
+      // the cursor blinks back on exactly on each soft tick (26.5 s, 28.5 s)
+      const ticks = C.TICKS.map((t) => +(t - T0).toFixed(2)); // 1.5, 3.5
+      [[1.0, 0], [ticks[0], 1], [2.5, 0], [ticks[1], 1], [4.5, 0]].forEach(([t, o]) => tl.set("#s8p-cursor", { opacity: o }, t));
+
+      // the post-it slides down, step by step, until it covers one eye
+      gsap.set("#s8-stuck", { rotation: -10 });
+      R.steps(tl, "#s8-stuck", 0, 5, (t) => {
+        const k = Math.min(9, Math.floor(t / 0.4));
+        return { y: k * 26, rotation: -10 + k * 1.6 };
+      }, 801);
+
+      // deadpan: almost still; one small nod on "Va apprendre à prompter." (28.0 s)
+      const NOD = 3.0;
+      R.steps(tl, "#s8-rig", 0, 5, (t, r) => {
+        const j = R.jitter(1, 0.12)(t, r);
+        const k = Math.round((t - NOD) * 10);
+        if (k === 0) { j.y += 14; j.scaleY = 0.985; }
+        if (k === 1) { j.y -= 6; j.scaleY = 1.01; }
+        return j;
+      }, 802);
+
+      R.boilLines(tl, "#s8-root .boil", 0, 5, 8);
+      window.__timelines["s8"] = tl;
+    })();
+  </script>
+</template>

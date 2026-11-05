@@ -1,0 +1,69 @@
+<template>
+  <style>
+    #root { position: absolute; inset: 0; background: #f6efe3; overflow: hidden; }
+    #s2-root .shadow { position: absolute; left: 190px; top: 1592px; width: 700px; height: 60px; }
+    #s2-root .pose { position: absolute; left: 128px; top: 545px; width: 825px; height: 1100px; }
+    #s2-root .rig { position: absolute; inset: 0; transform-origin: 50% 100%; }
+    #s2-root .rig img { width: 100%; height: 100%; display: block; }
+    #s2-root .panel { position: absolute; left: 130px; top: 245px; width: 820px; height: 290px; }
+    #s2-root .mark { position: absolute; }
+    #s2-root svg { width: 100%; height: 100%; overflow: visible; }
+  </style>
+  <div id="root" data-composition-id="s2" data-width="1080" data-height="1920">
+    <div id="s2-root">
+      <svg class="shadow" viewBox="0 0 700 60"><g id="s2-shadow" class="boil"></g></svg>
+      <div id="s2-pose" class="pose clip" data-start="0" data-duration="3" data-track-index="1">
+        <div id="s2-rigA" class="rig"><img src="assets/bank/P01_ordinateur.png" alt="" /></div>
+        <div id="s2-rigB" class="rig"><img src="assets/bank/P04_loupe.png" alt="" /></div>
+      </div>
+      <div id="s2-panel" class="panel clip" data-start="0" data-duration="3" data-track-index="2">
+        <svg id="s2-panel-svg" viewBox="0 0 820 290"></svg>
+      </div>
+      <div id="s2-marks" class="clip" data-start="0" data-duration="3" data-track-index="3">
+        <svg class="mark" style="left: 720px; top: 560px; width: 160px; height: 160px" viewBox="0 0 160 160"><g id="s2-qbang" class="boil"></g></svg>
+        <svg class="mark" style="left: 250px; top: 560px; width: 200px; height: 120px" viewBox="0 0 200 120"><g id="s2-pop" class="boil"></g></svg>
+      </div>
+    </div>
+  </div>
+  <script>
+    (function () {
+      const R = window.Rig;
+      const tl = gsap.timeline({ paused: true });
+      R.buildPanel(document.getElementById("s2-panel-svg"), "s2p", 2, 8);
+      R.mark(document.getElementById("s2-shadow"), "shadow", 12);
+      R.mark(document.getElementById("s2-qbang"), "qbang", 21);
+      R.mark(document.getElementById("s2-pop"), "pop", 22);
+
+      // chat: her short line is there, the input bar is empty, the generic answer arrives
+      for (let i = 0; i < 8; i++) gsap.set("#s2p-d" + i, { opacity: 0 });
+      gsap.set(["#s2p-bot", "#s2-qbang", "#s2-pop", "#s2-rigB"], { opacity: 0 });
+      gsap.set("#s2p-cursor", { x: 62 });
+      R.popIn(tl, "#s2p-bot", 0.2, 1.08);
+
+      // she reads it (0 - 0.5), then the take: squash, cut to the magnifier pose, stretch, settle
+      const CUT = 0.6;
+      tl.set("#s2-rigA", { opacity: 0 }, CUT);
+      tl.set("#s2-rigB", { opacity: 1 }, CUT);
+      R.steps(tl, "#s2-rigA", 0, CUT, (t, r) => {
+        const j = R.jitter(1.6, 0.25)(t, r);
+        if (t >= 0.4) { j.scaleY = 0.93; j.scaleX = 1.04; j.y += 8; } // anticipation
+        return j;
+      }, 201);
+      R.steps(tl, "#s2-rigB", CUT, 3, (t, r) => {
+        const k = Math.round((t - CUT) * 10);
+        const j = R.jitter(k < 6 ? 5 : 1.8, k < 6 ? 1 : 0.3)(t, r);
+        if (k === 0) { j.scaleY = 1.1; j.scaleX = 0.94; j.y -= 20; }
+        else if (k === 1) { j.scaleY = 0.96; j.scaleX = 1.03; }
+        return j;
+      }, 202);
+
+      R.popIn(tl, "#s2-pop", 0.7);
+      R.popIn(tl, "#s2-qbang", 0.8, 1.3);
+      // the marks shiver with her, then the comic hold
+      R.steps(tl, "#s2-qbang", 1.1, 2.0, (t, r) => ({ rotation: R.jit(r, 6), y: R.jit(r, 4) }), 203);
+
+      R.boilLines(tl, "#s2-root .boil", 0, 3, 2);
+      window.__timelines["s2"] = tl;
+    })();
+  </script>
+</template>

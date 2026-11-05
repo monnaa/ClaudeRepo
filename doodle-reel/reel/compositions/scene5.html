@@ -1,0 +1,82 @@
+<template>
+  <style>
+    #root { position: absolute; inset: 0; background: #f6efe3; overflow: hidden; }
+    #s5-root .cam { position: absolute; inset: 0; }
+    #s5-root .shadow { position: absolute; left: 190px; top: 1592px; width: 700px; height: 60px; }
+    #s5-root .pose { position: absolute; left: 128px; top: 545px; width: 825px; height: 1100px; }
+    #s5-root .rig { position: absolute; inset: 0; transform-origin: 50% 100%; }
+    #s5-root .rig img { width: 100%; height: 100%; display: block; }
+    #s5-root .mark { position: absolute; }
+    #s5-root svg { width: 100%; height: 100%; overflow: visible; }
+    #s5-root .bolts { position: absolute; left: 170px; top: 300px; width: 735px; height: 327px; }
+  </style>
+  <div id="root" data-composition-id="s5" data-width="1080" data-height="1920">
+    <div id="s5-root">
+      <div id="s5-cam" class="cam">
+        <svg class="mark" style="left: 340px; top: 600px; width: 440px; height: 440px" viewBox="0 0 400 400"><g id="s5-burst" class="boil"></g></svg>
+        <svg class="shadow" viewBox="0 0 700 60"><g id="s5-shadow" class="boil"></g></svg>
+        <div id="s5-pose" class="pose clip" data-start="0" data-duration="4" data-track-index="1">
+          <div id="s5-rig" class="rig"><img src="assets/bank/P10_stress.png" alt="" /></div>
+        </div>
+        <div id="s5-marks" class="clip" data-start="0" data-duration="4" data-track-index="2">
+          <img id="s5-bolts" class="bolts" src="assets/bank/A03_eclairs_stress.png" alt="" />
+          <svg class="mark" style="left: 250px; top: 700px; width: 130px; height: 130px" viewBox="0 0 120 120"><g id="s5-angerL" class="boil"></g></svg>
+          <svg class="mark" style="left: 720px; top: 680px; width: 140px; height: 140px" viewBox="0 0 120 120"><g id="s5-angerR" class="boil"></g></svg>
+          <svg class="mark" style="left: 470px; top: 560px; width: 120px; height: 120px" viewBox="0 0 120 120"><g id="s5-angerT" class="boil"></g></svg>
+        </div>
+      </div>
+    </div>
+  </div>
+  <script>
+    (function () {
+      const R = window.Rig;
+      const C = R.CUES;
+      const T0 = 14;
+      const tl = gsap.timeline({ paused: true });
+      R.mark(document.getElementById("s5-shadow"), "shadow", 15);
+      R.mark(document.getElementById("s5-burst"), "burst", 51);
+      R.mark(document.getElementById("s5-angerL"), "anger", 52);
+      R.mark(document.getElementById("s5-angerR"), "anger", 53);
+      R.mark(document.getElementById("s5-angerT"), "anger", 54);
+      gsap.set(["#s5-burst", "#s5-bolts", "#s5-angerT"], { opacity: 0 });
+
+      const THUD = +(C.THUD - T0).toFixed(2); // 2.2
+      const FREEZE = 3.3; // last 20 frames: one held drawing, mid-shout
+
+      // she explodes: squash/stretch takes, a tremble that builds, the slam, the freeze
+      R.steps(tl, "#s5-rig", 0, FREEZE + 0.05, (t, r) => {
+        const k = Math.round(t * 10);
+        const j = R.jitter(4 + t * 2.5, 0.8 + t * 0.4)(t, r);
+        if (k === 0) { j.scaleY = 0.86; j.scaleX = 1.09; }
+        else if (k === 1) { j.scaleY = 1.1; j.scaleX = 0.94; j.y -= 18; }
+        else if (k === 2) { j.scaleY = 0.97; j.scaleX = 1.02; }
+        else if (k === 12 || k === 16) { j.scaleY = 1.06; j.scaleX = 0.97; } // little stomps
+        else if (k === 13 || k === 17) { j.scaleY = 0.95; j.scaleX = 1.03; }
+        else if (k === 21) { j.scaleY = 1.12; j.scaleX = 0.93; j.y -= 26; } // wind-up
+        else if (k === 22) { j.scaleY = 0.84; j.scaleX = 1.12; j.y += 10; } // SLAM
+        else if (k === 23) { j.scaleY = 1.05; j.scaleX = 0.97; }
+        else if (k >= 28) { j.scaleY = 1.07; j.scaleX = 0.96; j.y -= 12; } // mid-shout
+        return j;
+      }, 501);
+      // the whole frame jolts on the slam, then settles
+      R.steps(tl, "#s5-cam", THUD, THUD + 0.6, (t, r) => {
+        const k = Math.round((t - THUD) * 10);
+        const a = [26, 16, 9, 5, 2, 0][k] || 0;
+        return { x: R.jit(r, a), y: a * (k % 2 ? -0.6 : 0.8) };
+      }, 502);
+      tl.set("#s5-cam", { x: 0, y: 0 }, THUD + 0.6);
+
+      R.popIn(tl, "#s5-angerL", 0.0, 1.3);
+      R.popIn(tl, "#s5-angerR", 0.5, 1.3);
+      R.popIn(tl, "#s5-angerT", 1.3, 1.3);
+      tl.set(["#s5-angerL", "#s5-angerR", "#s5-angerT"], { scale: 1.5 }, THUD);
+      tl.set(["#s5-angerL", "#s5-angerR", "#s5-angerT"], { scale: 1.25 }, THUD + 0.2);
+      R.popIn(tl, "#s5-bolts", THUD, 1.25);
+      R.popIn(tl, "#s5-burst", THUD, 1.3);
+      R.steps(tl, "#s5-bolts", THUD + 0.3, FREEZE + 0.05, (t, r) => ({ x: R.jit(r, 6), y: R.jit(r, 6), rotation: R.jit(r, 3) }), 503);
+
+      R.boilLines(tl, "#s5-root .boil", 0, FREEZE + 0.05, 5);
+      window.__timelines["s5"] = tl;
+    })();
+  </script>
+</template>

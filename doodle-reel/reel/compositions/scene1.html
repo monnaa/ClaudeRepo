@@ -1,0 +1,73 @@
+<template>
+  <style>
+    #root {
+      position: absolute;
+      inset: 0;
+      background: #f6efe3;
+      overflow: hidden;
+    }
+    #s1-root .shadow { position: absolute; left: 190px; top: 1592px; width: 700px; height: 60px; }
+    #s1-root .pose { position: absolute; left: 128px; top: 545px; width: 825px; height: 1100px; }
+    #s1-root .pose .rig { width: 100%; height: 100%; transform-origin: 50% 100%; }
+    #s1-root .pose img { width: 100%; height: 100%; display: block; }
+    #s1-root .panel { position: absolute; left: 130px; top: 245px; width: 820px; height: 290px; }
+    #s1-root svg { width: 100%; height: 100%; overflow: visible; }
+  </style>
+  <div id="root" data-composition-id="s1" data-width="1080" data-height="1920">
+    <div id="s1-root">
+      <svg class="shadow" viewBox="0 0 700 60"><g id="s1-shadow" class="boil"></g></svg>
+      <div id="s1-pose" class="pose clip" data-start="0" data-duration="4" data-track-index="1">
+        <div id="s1-rig" class="rig"><img id="s1-img" src="assets/bank/P01_ordinateur.png" alt="" /></div>
+      </div>
+      <div id="s1-panel" class="panel clip" data-start="0" data-duration="4" data-track-index="2">
+        <svg id="s1-panel-svg" viewBox="0 0 820 290"></svg>
+      </div>
+    </div>
+  </div>
+  <script>
+    (function () {
+      const R = window.Rig;
+      const C = R.CUES;
+      const T0 = 0; // scene start in the Reel
+      const tl = gsap.timeline({ paused: true });
+      const N = 8;
+      const panel = R.buildPanel(document.getElementById("s1-panel-svg"), "s1p", 1, N);
+      R.mark(document.getElementById("s1-shadow"), "shadow", 11);
+
+      // initial state of the chat panel: empty, cursor at the start of the input bar
+      gsap.set(["#s1p-user", "#s1p-bot"], { opacity: 0 });
+      for (let i = 0; i < N; i++) gsap.set("#s1p-d" + i, { opacity: 0 });
+      gsap.set("#s1p-cursor", { x: 62, opacity: 1 });
+      // cursor blinks before typing
+      [0.0, 0.25].forEach((t, i) => tl.set("#s1p-cursor", { opacity: i % 2 ? 0 : 1 }, t));
+
+      // typing: each key press (shared cue list) reveals a dash, on the drawing grid
+      const keys = C.L1.map((t) => +(t - T0).toFixed(2));
+      keys.forEach((t, i) => {
+        const d = Math.min(N - 1, Math.floor((i * N) / keys.length));
+        tl.set("#s1p-d" + d, { opacity: 1 }, t);
+        tl.set("#s1p-cursor", { opacity: 1, x: panel.dashX(d) + 64 }, t);
+      });
+      // Enter: the line leaves the input bar and lands as a short sent bubble
+      const enter = C.ENTER[1] - T0;
+      for (let i = 0; i < N; i++) tl.set("#s1p-d" + i, { opacity: 0 }, enter);
+      tl.set("#s1p-cursor", { x: 62 }, enter);
+      R.popIn(tl, "#s1p-user", enter);
+      // calm blink afterwards
+      for (let t = enter + 0.5, i = 0; t < 4; t += 0.5, i++) tl.set("#s1p-cursor", { opacity: i % 2 ? 1 : 0 }, +t.toFixed(2));
+
+      // the pose: gentle boil, a small head bob on each key, then she leans back, pleased
+      const keySet = new Set(keys.map((t) => t.toFixed(1)));
+      R.steps(tl, "#s1-rig", 0, 4, (t, r) => {
+        const j = R.jitter(2, 0.3)(t, r);
+        if (keySet.has(t.toFixed(1))) { j.y += 6; j.rotation += 0.5; }
+        if (Math.abs(t - enter) < 0.05) { j.y += 9; j.scaleY = 0.985; }
+        if (t >= enter + 0.4) { j.rotation -= 1.6; j.y -= 6; j.scaleY = 1.01; }
+        return j;
+      }, 101);
+
+      R.boilLines(tl, "#s1-root .boil", 0, 4, 1);
+      window.__timelines["s1"] = tl;
+    })();
+  </script>
+</template>

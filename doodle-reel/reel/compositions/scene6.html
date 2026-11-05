@@ -1,0 +1,65 @@
+<template>
+  <style>
+    #root { position: absolute; inset: 0; background: #f6efe3; overflow: hidden; }
+    #s6-root .shadow { position: absolute; left: 190px; top: 1592px; width: 700px; height: 60px; }
+    #s6-root .pose { position: absolute; left: 128px; top: 545px; width: 825px; height: 1100px; }
+    #s6-root .rig { position: absolute; inset: 0; transform-origin: 50% 100%; }
+    #s6-root .rig img { width: 100%; height: 100%; display: block; }
+    #s6-root .panel { position: absolute; left: 130px; top: 245px; width: 820px; height: 290px; }
+    #s6-root svg { width: 100%; height: 100%; overflow: visible; }
+  </style>
+  <div id="root" data-composition-id="s6" data-width="1080" data-height="1920">
+    <div id="s6-root">
+      <svg class="shadow" viewBox="0 0 700 60"><g id="s6-shadow" class="boil"></g></svg>
+      <div id="s6-pose" class="pose clip" data-start="0" data-duration="3" data-track-index="1">
+        <div id="s6-rig" class="rig"><img src="assets/bank/P01_ordinateur.png" alt="" /></div>
+      </div>
+      <div id="s6-panel" class="panel clip" data-start="0" data-duration="3" data-track-index="2">
+        <svg id="s6-panel-svg" viewBox="0 0 820 290"></svg>
+      </div>
+    </div>
+  </div>
+  <script>
+    (function () {
+      const R = window.Rig;
+      const C = R.CUES;
+      const T0 = 18;
+      const N = 8;
+      const tl = gsap.timeline({ paused: true });
+      const panel = R.buildPanel(document.getElementById("s6-panel-svg"), "s6p", 6, N);
+      R.mark(document.getElementById("s6-shadow"), "shadow", 16);
+      for (let i = 0; i < N; i++) gsap.set("#s6p-d" + i, { opacity: 0 });
+      gsap.set("#s6p-cursor", { x: 62 });
+
+      // exhausted, no more red: three slow stabs, each one hard (level 3 cues)
+      const stabs = C.L3.map((t) => +(t - T0).toFixed(2));
+      const chunks = [[0, 1, 2], [3, 4], [5, 6, 7]];
+      stabs.forEach((t, i) => {
+        chunks[i].forEach((d) => tl.set("#s6p-d" + d, { opacity: 1 }, t));
+        tl.set("#s6p-cursor", { x: panel.dashX(chunks[i][chunks[i].length - 1]) + 64 }, t);
+      });
+      const enter = +(C.ENTER[3] - T0).toFixed(2); // 2.2
+      for (let i = 0; i < N; i++) tl.set("#s6p-d" + i, { opacity: 0 }, enter);
+      tl.set("#s6p-cursor", { x: 62 }, enter);
+      tl.set("#s6p-bot", { opacity: 0 }, enter);
+      R.popIn(tl, "#s6p-user", enter);
+      R.popIn(tl, "#s6p-bot", 2.5, 1.05); // 20.5 s: the same generic block
+
+      const stabSet = new Set(stabs.map((t) => t.toFixed(1)));
+      R.steps(tl, "#s6-rig", 0, 3, (t, r) => {
+        const j = R.jitter(1.2, 0.2)(t, r);
+        j.rotation += 2.2; // slumped
+        j.y += 14;
+        const pre = stabs.some((s) => Math.abs(t - (s - 0.2)) < 0.05);
+        if (pre) { j.y -= 10; j.scaleY = 1.03; } // lifts the finger...
+        if (stabSet.has(t.toFixed(1))) { j.y += 18; j.scaleY = 0.95; j.scaleX = 1.02; } // ...and stabs
+        if (Math.abs(t - enter) < 0.05) { j.y += 22; j.scaleY = 0.94; }
+        if (Math.abs(t - 2.8) < 0.05) { j.y -= 6; j.rotation -= 1; } // the only twitch
+        return j;
+      }, 601);
+
+      R.boilLines(tl, "#s6-root .boil", 0, 3, 6);
+      window.__timelines["s6"] = tl;
+    })();
+  </script>
+</template>

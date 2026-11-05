@@ -1,0 +1,78 @@
+<template>
+  <style>
+    #root { position: absolute; inset: 0; background: #f6efe3; overflow: hidden; }
+    #s4-root .shadow { position: absolute; left: 190px; top: 1592px; width: 700px; height: 60px; }
+    #s4-root .pose { position: absolute; left: 128px; top: 545px; width: 825px; height: 1100px; }
+    #s4-root .rig { position: absolute; inset: 0; transform-origin: 50% 100%; }
+    #s4-root .rig img { width: 100%; height: 100%; display: block; }
+    #s4-root .panel { position: absolute; left: 130px; top: 245px; width: 820px; height: 290px; }
+    #s4-root .mark { position: absolute; }
+    #s4-root svg { width: 100%; height: 100%; overflow: visible; }
+  </style>
+  <div id="root" data-composition-id="s4" data-width="1080" data-height="1920">
+    <div id="s4-root">
+      <svg class="shadow" viewBox="0 0 700 60"><g id="s4-shadow" class="boil"></g></svg>
+      <div id="s4-pose" class="pose clip" data-start="0" data-duration="4" data-track-index="1">
+        <div id="s4-rig" class="rig"><img src="assets/bank/P01_ordinateur.png" alt="" /></div>
+      </div>
+      <div id="s4-panel" class="panel clip" data-start="0" data-duration="4" data-track-index="2">
+        <svg id="s4-panel-svg" viewBox="0 0 820 290"></svg>
+      </div>
+      <div id="s4-marks" class="clip" data-start="0" data-duration="4" data-track-index="3">
+        <svg class="mark" style="left: 270px; top: 580px; width: 120px; height: 120px" viewBox="0 0 120 120"><g id="s4-angerL" class="boil"></g></svg>
+        <svg class="mark" style="left: 690px; top: 560px; width: 120px; height: 120px" viewBox="0 0 120 120"><g id="s4-angerR" class="boil"></g></svg>
+      </div>
+    </div>
+  </div>
+  <script>
+    (function () {
+      const R = window.Rig;
+      const C = R.CUES;
+      const T0 = 10;
+      const N = 8;
+      const tl = gsap.timeline({ paused: true });
+      const panel = R.buildPanel(document.getElementById("s4-panel-svg"), "s4p", 4, N);
+      R.mark(document.getElementById("s4-shadow"), "shadow", 14);
+      R.mark(document.getElementById("s4-angerL"), "anger", 41);
+      R.mark(document.getElementById("s4-angerR"), "anger", 42);
+
+      // the panel still shows her line and the generic answer
+      for (let i = 0; i < N; i++) gsap.set("#s4p-d" + i, { opacity: 0 });
+      gsap.set("#s4p-cursor", { x: 62 });
+      gsap.set(["#s4-angerL", "#s4-angerR"], { opacity: 0 });
+
+      // she retypes the same line: faster and harder (shared cue list, level 2)
+      const keys = C.L2.map((t) => +(t - T0).toFixed(2));
+      keys.forEach((t, i) => {
+        const d = Math.min(N - 1, Math.floor((i * N) / keys.length));
+        tl.set("#s4p-d" + d, { opacity: 1 }, t);
+        tl.set("#s4p-cursor", { x: panel.dashX(d) + 64 }, t);
+      });
+      const enter = +(C.ENTER[2] - T0).toFixed(2);
+      for (let i = 0; i < N; i++) tl.set("#s4p-d" + i, { opacity: 0 }, enter);
+      tl.set("#s4p-cursor", { x: 62 }, enter);
+      tl.set("#s4p-bot", { opacity: 0 }, enter);
+      R.popIn(tl, "#s4p-user", enter);
+      R.popIn(tl, "#s4p-bot", 2.2, 1.08); // ... the same generic answer
+
+      R.popIn(tl, "#s4-angerL", 0.6, 1.3);
+      R.popIn(tl, "#s4-angerR", 1.2, 1.3);
+      tl.set("#s4-angerL", { scale: 1.25 }, 2.5);
+      tl.set("#s4-angerR", { scale: 1.3 }, 2.6);
+
+      const keySet = new Set(keys.map((t) => t.toFixed(1)));
+      R.steps(tl, "#s4-rig", 0, 4, (t, r) => {
+        const typing = t >= 0.4 && t < 1.7;
+        const j = R.jitter(typing ? 4 : 2, typing ? 0.8 : 0.35)(t, r);
+        if (keySet.has(t.toFixed(1))) { j.y += 10; j.scaleY = 0.98; }
+        if (Math.abs(t - enter) < 0.05) { j.y += 16; j.scaleY = 0.96; j.scaleX = 1.02; }
+        if (t >= 2.3) { j.rotation += 1.2; j.y += 4; } // glares at the same answer
+        return j;
+      }, 401);
+      R.steps(tl, ["#s4-angerL", "#s4-angerR"], 1.5, 4, (t, r) => ({ x: R.jit(r, 3), y: R.jit(r, 3) }), 402);
+
+      R.boilLines(tl, "#s4-root .boil", 0, 4, 4);
+      window.__timelines["s4"] = tl;
+    })();
+  </script>
+</template>

@@ -1,0 +1,42 @@
+<template>
+  <style>
+    #root { position: absolute; inset: 0; background: #f6efe3; overflow: hidden; }
+    #s3-root .pose { position: absolute; left: -135px; top: 330px; width: 1350px; height: 1800px; }
+    #s3-root .rig { position: absolute; inset: 0; transform-origin: 50% 30%; }
+    #s3-root .rig img { width: 100%; height: 100%; display: block; }
+    #s3-root .mark { position: absolute; }
+    #s3-root svg { width: 100%; height: 100%; overflow: visible; }
+  </style>
+  <div id="root" data-composition-id="s3" data-width="1080" data-height="1920">
+    <div id="s3-root">
+      <!-- close-up: the crop is a bigger box, never a camera move -->
+      <div id="s3-pose" class="pose clip" data-start="0" data-duration="3" data-track-index="1" data-layout-allow-overflow>
+        <div id="s3-rig" class="rig"><img src="assets/bank/P06_pause_cafe.png" alt="" /></div>
+      </div>
+      <div id="s3-marks" class="clip" data-start="0" data-duration="3" data-track-index="2">
+        <svg class="mark" style="left: 190px; top: 420px; width: 120px; height: 120px" viewBox="0 0 120 120"><g id="s3-anger" class="boil"></g></svg>
+      </div>
+    </div>
+  </div>
+  <script>
+    (function () {
+      const R = window.Rig;
+      const tl = gsap.timeline({ paused: true });
+      R.mark(document.getElementById("s3-anger"), "anger", 31);
+      gsap.set("#s3-anger", { opacity: 0 });
+
+      // "Je reste calme." Eyes closed, coffee... and the calm cracks: the tremble grows,
+      // a single twitch, the first small red mark.
+      R.steps(tl, "#s3-rig", 0, 3, (t, r) => {
+        const grow = t < 1.4 ? 0 : (t - 1.4) / 1.6; // 0 -> 1
+        const j = R.jitter(1.2 + grow * 4, 0.15 + grow * 0.5)(t, r);
+        if (Math.abs(t - 2.3) < 0.05) { j.y -= 10; j.rotation += 1.2; } // twitch
+        return j;
+      }, 301);
+      R.popIn(tl, "#s3-anger", 1.8, 1.35);
+
+      R.boilLines(tl, "#s3-root .boil", 0, 3, 3);
+      window.__timelines["s3"] = tl;
+    })();
+  </script>
+</template>
