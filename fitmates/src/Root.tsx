@@ -1,5 +1,6 @@
 import { Composition, Folder } from "remotion";
 import { FitMates } from "./FitMates";
+import { FitmatesV2 } from "./FitmatesV2";
 import { Match } from "./scenes/Match";
 import { Streak } from "./scenes/Streak";
 
@@ -7,6 +8,7 @@ export const RemotionRoot: React.FC = () => {
   return (
     <>
       <Composition id="FitMatesPromo" component={FitMates} durationInFrames={450} fps={30} width={1080} height={1920} />
+      <Composition id="FitmatesV2" component={FitmatesV2} durationInFrames={1210} fps={30} width={1080} height={1920} />
       <Folder name="Scenes">
         <Composition
           id="MatchScene"
